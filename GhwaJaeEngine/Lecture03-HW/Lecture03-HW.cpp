@@ -170,37 +170,40 @@ int main()
         int input;
         cin >> input;
 
-        ForeColor selectedColor = ForeColor::DEFAULT;
+        if (input <= 64 || input == 100 || input == 101) {
+            ForeColor selectedColor = ForeColor::DEFAULT;
 #pragma region 수상한 코드
-        if (input == 100) {
-            source = GetSourceImage("professor_es.jpg");
-            continue;
-        }
-        if (input == 101) {
-            source = GetSourceImage("marioblock.jpg");
-            continue;
-        }
+            if (input == 100) {
+                source = GetSourceImage("professor_es.jpg");
+                continue;
+            }
+            if (input == 101) {
+                source = GetSourceImage("marioblock.jpg");
+                continue;
+            }
 #pragma endregion
-        if (input & 0b1){
-            PrintImageWithColor(source, ForeColor::WHITE);
+            if (input & 0b1) {
+                PrintImageWithColor(source, ForeColor::WHITE);
+            }
+            if (input & 0b10) {
+                PrintImageWithColor(source, ForeColor::RED);
+            }
+            if (input & 0b100) {
+                PrintImageWithColor(source, ForeColor::GREEN);
+            }
+            if (input & 0b1000) {
+                PrintImageWithColor(source, ForeColor::YELLOW);
+            }
+            if (input & 0b10000) {
+                PrintImageWithColor(source, ForeColor::CYAN);
+            }
+            if (input & 0b100000) {
+                PrintImageWithColor(source, ForeColor::MAGENTA);
+            }
+            if (input == 64)
+                break;
         }
-        if (input & 0b10){
-            PrintImageWithColor(source, ForeColor::RED);
-        }
-        if (input & 0b100) {
-            PrintImageWithColor(source, ForeColor::GREEN);
-        }
-        if (input & 0b1000) {
-            PrintImageWithColor(source, ForeColor::YELLOW);
-        }
-        if (input & 0b10000) {
-            PrintImageWithColor(source, ForeColor::CYAN);
-        }
-        if (input & 0b100000) {
-            PrintImageWithColor(source, ForeColor::MAGENTA);
-        }
-        if (input == 64)
-            break;
-
+        else
+            cout << "올바른 코드를 입력하십시오." << endl;
     }
 }
