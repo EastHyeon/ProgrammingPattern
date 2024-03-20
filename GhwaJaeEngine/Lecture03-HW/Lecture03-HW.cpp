@@ -166,7 +166,7 @@ int main()
     cout << "이름 : 김동현" << endl;
     while (true)
     {
-        cout << "\x1b[0m" << "화면에 그릴 물체코드를 입력하세요: ";
+        cout << "\x1b[0m" << "화면에 그릴 물체코드를 입력하세요 : ";
         int input;
         cin >> input;
 
