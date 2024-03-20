@@ -150,6 +150,10 @@ int main()
             source = GetSourceImage("professor_es.jpg");
             continue;
         }
+        if (input == 101) {
+            source = GetSourceImage("marioblock.jpg");
+            continue;
+        }
 #pragma endregion
         if (input & 0b1){
             PrintImageWithColor(source, ForeColor::WHITE);
