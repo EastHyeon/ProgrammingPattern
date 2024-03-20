@@ -80,6 +80,34 @@ void PrintImageWithColor(CImg<unsigned char> grayWeight, ForeColor colorCode) {
     }
 }
 
+CImg<unsigned char> InitializeImage(const char* address) {
+    CImg<unsigned char> origin(address);
+
+    float ratio = (float)origin.height() / (float)origin.width();
+    int targetWidth = 50;
+    int resizedHeight = static_cast<int>(targetWidth * ratio);
+    int resizedWidth = targetWidth * 2;
+
+    origin.resize(resizedWidth, resizedHeight);
+
+    CImg<unsigned char> grayWeight(origin.width(), origin.height(), 1, 1, 0);
+
+
+    cimg_forXY(origin, x, y) {
+        int R = static_cast<int>(origin(x, y, 0, 0));
+        int G = static_cast<int>(origin(x, y, 0, 1));
+        int B = static_cast<int>(origin(x, y, 0, 2));
+
+        // Luma coding을 이용한 grayscale 변환법
+        // 밝기 정보(Luma)만을 추출하여 grayscale 이미지를 생성한다.
+        // 인간의 시각이 가장 민감한 녹색을 크게 반영하여 계산한다.
+        int grayValueWeight = (int)(0.299 * R + 0.587 * G + 0.114 * B);
+
+        grayWeight(x, y, 0, 0) = grayValueWeight;
+    }
+    return grayWeight;
+}
+
 CImg<unsigned char> GetSourceImage(const char* address) {
     CImg<unsigned char> origin(address);
 
@@ -105,25 +133,23 @@ CImg<unsigned char> GetSourceImage(const char* address) {
 
         grayWeight(x, y, 0, 0) = grayValueWeight;
     }
-    if (address == "professor_es.jpg") 
+
+    for (int y = 0; y < origin.height(); y++)
     {
-        for (int y = 0; y < origin.height(); y++)
+        for (int x = 0; x < origin.width(); x++)
         {
-            for (int x = 0; x < origin.width(); x++)
-            {
-                unsigned char R = origin(x, y, 0, 0);
-                unsigned char G = origin(x, y, 0, 1);
-                unsigned char B = origin(x, y, 0, 2);
+            unsigned char R = origin(x, y, 0, 0);
+            unsigned char G = origin(x, y, 0, 1);
+            unsigned char B = origin(x, y, 0, 2);
 
-                int GRAY = static_cast<int>(grayWeight(x, y, 0, 0));
+            int GRAY = static_cast<int>(grayWeight(x, y, 0, 0));
 
-                int index = static_cast<int>(static_cast<int>(GRAY) / 256.0f * strlen(ContrastMap));
+            int index = static_cast<int>(static_cast<int>(GRAY) / 256.0f * strlen(ContrastMap));
 
-                // cout << "\x1b[38;2;" << static_cast<int>(R) << ";" << static_cast<int>(G) << ";" << static_cast<int>(B) << "m" << ContrastMap[index];
-                cout << "\x1b[38;2;" << static_cast<int>(R) << ";" << static_cast<int>(G) << ";" << static_cast<int>(B) << "m" << ContrastMap[index];
-            }
-            cout << "\n";
+            // cout << "\x1b[38;2;" << static_cast<int>(R) << ";" << static_cast<int>(G) << ";" << static_cast<int>(B) << "m" << ContrastMap[index];
+            cout << "\x1b[38;2;" << static_cast<int>(R) << ";" << static_cast<int>(G) << ";" << static_cast<int>(B) << "m" << ContrastMap[index];
         }
+        cout << "\n";
     }
 
     return grayWeight;
@@ -133,7 +159,7 @@ CImg<unsigned char> GetSourceImage(const char* address) {
 int main()
 {
 #pragma region 수상한 코드
-    CImg<unsigned char> source = GetSourceImage("marioblock.jpg");
+    CImg<unsigned char> source = InitializeImage("marioblock.jpg");
 #pragma endregion
     cout << "화면에 그림을 그리는 프로그램입니다." << endl;
     cout << "학번 : 202327005" << endl;
