@@ -20,7 +20,7 @@ enum ForeColor {
 };
 #pragma region 수상한 코드
 // .,'`^:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$
-const char* ContrastMap = "@";
+const char* ContrastMap = " .,'`^:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 
 typedef struct {
     enum ForeColor colorTag;
@@ -222,33 +222,9 @@ void PrintImage(CImg<unsigned char> origin)
 int main()
 {
 #pragma region 수상한 코드
-    const int TARGET_WIDTH = 200;
+    const int TARGET_WIDTH = 50;
     CImg<unsigned char> source = InitializeImage("marioblock.jpg", TARGET_WIDTH);
 #pragma endregion
-
-    const int MAX_FRAME = 299;
-    int frame = 0;
-    char frameCharBuffer[4];
-
-
-    char buffer[1000];
-    while (true)
-    {
-        sprintf_s(frameCharBuffer, "%3d", frame);
-        for (int i = 0; i < 3; i++)
-        {
-            if (frameCharBuffer[i] == ' ')
-                frameCharBuffer[i] = '0';
-        }
-        cout << "\x1b[0;0H";
-        sprintf_s(buffer, "file_example_MP4_480_1_5MG_000\\file_example_MP4_480_1_5MG_%s.jpg", frameCharBuffer);
-        source = GetSourceImage(buffer, TARGET_WIDTH);
-        frame++;
-        Sleep(10);
-        if (frame >= MAX_FRAME)
-            frame = 0;
-    }
-
     cout << "화면에 그림을 그리는 프로그램입니다." << endl;
     cout << "학번 : 202327005" << endl;
     cout << "이름 : 김동현" << endl;
