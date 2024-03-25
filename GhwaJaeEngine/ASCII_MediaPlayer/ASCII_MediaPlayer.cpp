@@ -31,21 +31,53 @@ extern "C"{
 
 #include <conio.h>
 
-const char* ContrastMap = " .,'`^:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+struct sWave
+{
+
+};
+
+// " .,'`^:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$" : 주의(안이쁨)
+// " .,:;i1tfLCG08@"
+// " .:*@"
+const char* ContrastMap = "@";
+LARGE_INTEGER frequency;
+
+enum class PlayStatus
+{
+    P_STOP,
+    P_RUN,
+    P_EXIT,
+    P_EOF
+};
+
+void uSleep(int64_t usec) {
+    LARGE_INTEGER start, end;
+    int64_t elapse;
+
+    QueryPerformanceCounter(&start);
+    do {
+        QueryPerformanceCounter(&end);
+        elapse = (end.QuadPart - start.QuadPart) * 1000000 / frequency.QuadPart;
+    } while (elapse < usec);
+}
 
 int main(void) {
+    QueryPerformanceFrequency(&frequency);
+
     int ret;
     AVFormatContext* fmtCtx = NULL;
     int vidx = -1, aidx = -1;
-    AVStream* vStream, * aStream;
+    AVStream* vStream = NULL, * aStream = NULL;
     AVCodecParameters* vPara, * aPara;
     const AVCodec* vCodec, * aCodec;
-    AVCodecContext* vCtx, * aCtx;
+    AVCodecContext* vCtx = NULL, * aCtx = NULL;
 
     uint8_t* rgbbuf = NULL;
     SwsContext* swsCtx = NULL;
 
-    ret = avformat_open_input(&fmtCtx, "Videos\\Zion.T-Unkown.mp4", NULL, NULL);
+    av_log_set_level(AV_LOG_ERROR);
+
+    ret = avformat_open_input(&fmtCtx, "Videos\\Bocchi.mp4", NULL, NULL);
     if (ret != 0) { return -1; }
 
     avformat_find_stream_info(fmtCtx, NULL);
@@ -53,32 +85,52 @@ int main(void) {
     vidx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
     aidx = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_AUDIO, -1, vidx, NULL, 0);
 
-    vStream = fmtCtx->streams[vidx];
-    vPara = vStream->codecpar;
-    vCodec = avcodec_find_decoder(vPara->codec_id);
-    vCtx = avcodec_alloc_context3(vCodec);
-    avcodec_parameters_to_context(vCtx, vPara);
-    avcodec_open2(vCtx, vCodec, NULL);
+    if (vidx == AVERROR_STREAM_NOT_FOUND)
+        printf("비디오 스트림을 찾을 수 없습니다.");
+    else {
+        vStream = fmtCtx->streams[vidx];
+        vPara = vStream->codecpar;
+        vCodec = avcodec_find_decoder(vPara->codec_id);
+        vCtx = avcodec_alloc_context3(vCodec);
+        avcodec_parameters_to_context(vCtx, vPara);
+        avcodec_open2(vCtx, vCodec, NULL);
+    }
 
-    aStream = fmtCtx->streams[aidx];
-    aPara = aStream->codecpar;
-    aCodec = avcodec_find_decoder(aPara->codec_id);
-    aCtx = avcodec_alloc_context3(aCodec);
-    avcodec_parameters_to_context(aCtx, aPara);
-    avcodec_open2(aCtx, aCodec, NULL);
+    if (aidx == AVERROR_STREAM_NOT_FOUND)
+        printf("오디오 스트림을 찾을 수 없습니다.");
+    else 
+    {
+        aStream = fmtCtx->streams[aidx];
+        aPara = aStream->codecpar;
+        aCodec = avcodec_find_decoder(aPara->codec_id);
+        aCtx = avcodec_alloc_context3(aCodec);
+        avcodec_parameters_to_context(aCtx, aPara);
+        avcodec_open2(aCtx, aCodec, NULL);
+    }
 
 
     // 루프를 돌며 패킷을 모두 읽는다.
 
-    int vcount = 0, acount = 0;
+    int vframeCount = 0, acount = 0;
     AVPacket packet = { 0, };
     AVFrame RGBFrame = { 0, };
     AVFrame vFrame = { 0, }, aFrame = { 0, };
+    int64_t MAX_FRAME_COUNT = vStream->nb_frames;
     char* buffer = NULL;
-
     bool allocFlag = true;
 
+    double frameRate = av_q2d(vStream->r_frame_rate);
+    int64_t frameGap = int64_t(AV_TIME_BASE / frameRate);
+
+    PlayStatus status = PlayStatus::P_STOP;
+
+    //커서 숨김
+    printf("\x1b[?25l");
+
     while (av_read_frame(fmtCtx, &packet) == 0) {
+        if (status == PlayStatus::P_EXIT)
+            break;
+
         if (packet.stream_index == vidx) {
             ret = avcodec_send_packet(vCtx, &packet);
             if (ret != 0) { continue; }
@@ -87,7 +139,7 @@ int main(void) {
                 if (ret == AVERROR(EAGAIN)) break;
 
                 // 스케일 컨텍스트 생성
-                int targetWidth = 100;
+                int targetWidth = 130;
                 float ratio = (float)vFrame.height / (float)vFrame.width;
                 int resizedHeight = static_cast<int>(targetWidth * ratio);
                 int resizedWidth = targetWidth * 2;
@@ -181,20 +233,21 @@ int main(void) {
                         }
 
                         buffer[y * (BUFFER_WITDH_SIZE)+(pixelSizedX + count++)] = 'm';
-                        buffer[y * (BUFFER_WITDH_SIZE)+(pixelSizedX + count++)] = '@';
+                        buffer[y * (BUFFER_WITDH_SIZE)+(pixelSizedX + count++)] = ContrastMap[index];
+                        // buffer[y * (BUFFER_WITDH_SIZE)+(pixelSizedX + count++)] = '#';
                     }
                     buffer[y * BUFFER_WITDH_SIZE + BUFFER_WITDH_SIZE - 1] = '\n';
-                    buffer[RGBFrame.height * BUFFER_WITDH_SIZE - 1] = '\0';
-
                 }
-                printf("\x1b[0;0H");
-                printf(buffer);
+                buffer[RGBFrame.height * BUFFER_WITDH_SIZE - 1] = '\0';
+                puts("\x1b[0;0H");
+                puts(buffer);
+                // uSleep(frameGap);
                 av_packet_unref(&packet);
-                Sleep(10);
             }
+            vframeCount++;
         }
-
     }
+    //출력
     printf("\x1b[0m");
     // 메모리 해제
 
@@ -204,7 +257,8 @@ int main(void) {
 
     av_frame_unref(&vFrame);
     av_frame_unref(&aFrame);
-    avcodec_free_context(&vCtx);
-    avcodec_free_context(&aCtx);
-    avformat_close_input(&fmtCtx);
+
+    if (vCtx) { avcodec_free_context(&vCtx); }
+    if (aCtx) { avcodec_free_context(&aCtx); }
+    if (fmtCtx) { avformat_close_input(&fmtCtx); }
 }
