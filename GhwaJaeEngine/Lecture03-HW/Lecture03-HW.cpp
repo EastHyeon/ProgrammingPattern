@@ -116,7 +116,7 @@ void PrintImageWithColor(CImg<unsigned char> origin, ForeColor colorCode) {
     }
     //7 10 11 14 15 18 19
     // 색상 확장 시퀀스 문자열 길이: 19
-    PrintImageFast(colored);
+    PrintImage(colored);
 }
 
 void PrintImageFast(CImg<unsigned char> origin) 

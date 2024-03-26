@@ -50,20 +50,7 @@ enum class PlayStatus
     P_EOF
 };
 
-void uSleep(int64_t usec) {
-    LARGE_INTEGER start, end;
-    int64_t elapse;
-
-    QueryPerformanceCounter(&start);
-    do {
-        QueryPerformanceCounter(&end);
-        elapse = (end.QuadPart - start.QuadPart) * 1000000 / frequency.QuadPart;
-    } while (elapse < usec);
-}
-
 int main(void) {
-    QueryPerformanceFrequency(&frequency);
-
     int ret;
     AVFormatContext* fmtCtx = NULL;
     int vidx = -1, aidx = -1;
@@ -139,7 +126,7 @@ int main(void) {
                 if (ret == AVERROR(EAGAIN)) break;
 
                 // 스케일 컨텍스트 생성
-                int targetWidth = 130;
+                int targetWidth = 150;
                 float ratio = (float)vFrame.height / (float)vFrame.width;
                 int resizedHeight = static_cast<int>(targetWidth * ratio);
                 int resizedWidth = targetWidth * 2;
@@ -241,10 +228,14 @@ int main(void) {
                 buffer[RGBFrame.height * BUFFER_WITDH_SIZE - 1] = '\0';
                 puts("\x1b[0;0H");
                 puts(buffer);
-                // uSleep(frameGap);
                 av_packet_unref(&packet);
             }
             vframeCount++;
+        }
+
+        if (packet.stream_index == aidx)
+        {
+
         }
     }
     //출력
