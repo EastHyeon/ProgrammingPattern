@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <GLFW/glfw3.h>
 
 #pragma comment(lib, "opengl32.lib")
@@ -12,7 +12,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        std::cout << key << " 입력됨." << std::endl;
+        std::cout << key << " �Էµ�." << std::endl;
         glfwSetWindowShouldClose(window, 1);
     }
 }
