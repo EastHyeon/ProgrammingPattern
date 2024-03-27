@@ -1,7 +1,23 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <vector>
 
 #pragma comment(lib, "opengl32.lib")
+
+int CursorXPos = 0;
+int CursorYPos = 0;
+bool isMouseMove = false;
+
+enum class KEY_STATE
+{
+    NONE,
+    PRESS,
+    // DOWN,
+    RELEASE,
+    // END
+};
+
+std::vector<KEY_STATE> MouseStates;
 
 void ErrorCallback(int error, const char* description)
 {
@@ -19,34 +35,26 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void MouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
     {
-        glClearColor(0.f, 1.f, 0.f, 1.f);
+        if (action == GLFW_PRESS)
+            MouseStates[0] = KEY_STATE::PRESS;
+        else if (action == GLFW_RELEASE)
+            MouseStates[0] = KEY_STATE::RELEASE;
     }
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-    }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        glClearColor(1.f, 0.f, 0.f, 1.f);
-    }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-    {
-        glClearColor(0.f, 0.f, 0.f, 1.f);
+        if (action == GLFW_PRESS)
+            MouseStates[1] = KEY_STATE::PRESS;
+        else if (action == GLFW_RELEASE)
+            MouseStates[1] = KEY_STATE::RELEASE;
     }
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-    {
-        glClearColor(0.f, 0.f, 1.f, 1.f);
-    }
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-    {
-        glClearColor(1.f, 0.f, 1.f, 1.f);
-    }
+    isMouseMove = true;
 }
 
 int main(void)
@@ -76,11 +84,27 @@ int main(void)
     glfwSetMouseButtonCallback(window, MouseCallback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
 
+    MouseStates.resize(3, KEY_STATE::NONE);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Poll for and process events */
         glfwPollEvents();
+
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+
+        if (MouseStates[0] == KEY_STATE::PRESS && isMouseMove)
+            glClearColor(1.f, 0.f, 1.f, 1.f);
+        else if (MouseStates[0] == KEY_STATE::PRESS)
+            glClearColor(0.f, 1.f, 0.f, 1.f);
+
+        if (MouseStates[1] == KEY_STATE::PRESS && isMouseMove)
+            glClearColor(0.f, 0.f, 1.f, 1.f);
+        else if (MouseStates[1] == KEY_STATE::PRESS)
+            glClearColor(1.f, 0.f, 0.f, 1.f);
+
+        isMouseMove = false;
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
