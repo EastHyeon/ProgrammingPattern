@@ -104,13 +104,15 @@ int main(void)
         else if (MouseStates[1] == KEY_STATE::PRESS)
             glClearColor(1.f, 0.f, 0.f, 1.f);
 
-        isMouseMove = false;
-
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+
+        std::cout << isMouseMove << std::endl;
+
+        isMouseMove = false;
     }
 
     glfwTerminate();
